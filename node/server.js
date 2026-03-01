@@ -14699,7 +14699,7 @@ function sync_loop() {
 			"stop_character: " + player.name + " owner: " + player.owner + " bank: " + bank + " result: " + JSON.stringify(R),
 			1,
 		);
-		if (R.success) {
+		if (R.success || R.reason == "not_in_game") {
 			delete dc_players[player.real_id];
 			add_event({ _id: player._id, info: { name: player.name }, level: player.level }, "stop", ["activity"], {
 				info: { message: player.name + " [LV." + player.level + "] logged out", server: server_id },
