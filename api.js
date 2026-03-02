@@ -772,7 +772,7 @@ async function get_servers_api(args) {
 	var servers = [];
 	for (var i = 0; i < server_list.length; i++) {
 		var s = server_list[i];
-		servers.push({ ip: s.ip, port: s.port, region: s.region, name: s.name, pvp: gf(s, "pvp"), gameplay: s.gameplay });
+		servers.push({ address: s.address, path: s.path, region: s.region, name: s.name, pvp: s.info.pvp, gameplay: s.gameplay });
 	}
 	return { success: true, servers: servers };
 }
@@ -782,12 +782,12 @@ async function can_reload_api(args) {
 	var servers = await get_servers();
 	for (var i = 0; i < servers.length; i++) {
 		var server = servers[i];
-		if (server.region === args.region && server.name === args.name && (args.pvp ? gf(server, "pvp") : !gf(server, "pvp"))) {
-			args.res.infs.push({ type: "reload", ip: server.ip, port: server.port });
-			return { success: true };
+		if (server.region === args.region && server.name === args.name) {
+			args.res.infs.push({ type: "reload", address: server.address, path: server.path });
+			return { success: true, reload: true };
 		}
 	}
-	return { success: true };
+	return { success: true, reload: false };
 }
 
 // ==================== SOCIAL ====================

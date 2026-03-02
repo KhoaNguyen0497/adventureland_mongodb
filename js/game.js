@@ -316,7 +316,7 @@ function observe_character(name) {
 						socket.emit("o:home");
 					} else {
 						server_address = server.address;
-						server_port = server.port;
+						server_path = server.path;
 						init_socket({ secret: ch.secret });
 						if (is_comm) hide_nav();
 					}
