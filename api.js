@@ -1060,15 +1060,15 @@ async function save_code_api(args) {
 	if (name === "DELETE") {
 		args.res.infs.push({ type: "code_info", num: slot, delete: true });
 		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=0;code_change=false;" });
-		if (args.log) args.res.infs.push({ type: "chat_log", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
-		else args.res.infs.push({ type: "chat_log", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
+		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
 	} else {
 		args.res.infs.push({ type: "code_info", num: slot, name: data.info.code_list[slot][0], v: data.info.code_list[slot][1] });
 		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;" });
-		if (args.log) args.res.infs.push({ type: "chat_log", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
-		else if (args.auto && character) args.res.infs.push({ type: "chat_log", message: "Auto-saved [" + character + "]", color: "#96E8A7" });
-		else if (args.auto) args.res.infs.push({ type: "chat_log", message: "Auto-saved " + name + "." + slot + ".js", color: "#96E8A7" });
-		else args.res.infs.push({ type: "chat_log", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
+		else if (args.auto && character) args.res.infs.push({ type: "message", message: "Auto-saved [" + character + "]", color: "#96E8A7" });
+		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + "." + slot + ".js", color: "#96E8A7" });
+		else args.res.infs.push({ type: "chat_message", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
 	}
 	return { success: true };
 }
@@ -1082,7 +1082,8 @@ async function load_code_api(args) {
 		var default_code = shtml("htmls/contents/codes/default_code.js");
 		if (args.pure) return { code: default_code };
 		args.res.infs.push({ type: "code", code: default_code, run: args.run, slot: 0, save: args.save });
-		if (args.log) args.res.infs.push({ type: "chat_log", message: "Loaded the default code", color: "#32A3B0" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Loaded the default code", color: "#32A3B0" });
+		else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded the default code", color: "#32A3B0" });
 		return { success: true };
 	}
 
@@ -1096,13 +1097,14 @@ async function load_code_api(args) {
 			if (code_entity) {
 				if (args.pure) return { code: code_entity.info.code };
 				args.res.infs.push({ type: "code", code: code_entity.info.code, run: args.run, slot: slot, save: args.save, name: code_list[slot][0], v: code_list[slot][1] });
-				if (args.log) args.res.infs.push({ type: "chat_log", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
+				if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
+				else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
 				return { success: true };
 			}
 		}
 	}
 	if (args.pure) return { code: "say('Code not found'); set_status('Not Found')" };
-	args.res.infs.push({ type: "chat_log", message: "Not Found", color: "#AD3844" });
+	args.res.infs.push({ type: "chat_message", message: "Not Found", color: "#AD3844" });
 	return { failed: true, reason: "not_found" };
 }
 
@@ -1157,7 +1159,7 @@ async function tutorial_api(args) {
 		if (R.result[3] === 1) info.success = true;
 		if (R.result[3] === 2) info.next = true;
 		args.res.infs.push(info);
-		args.res.infs.push({ type: "chat_log", message: R.result[0], color: R.result[1] });
+		args.res.infs.push({ type: "message", message: R.result[0], color: R.result[1] });
 	}
 	return { success: true };
 }
@@ -1180,7 +1182,7 @@ async function reset_tutorial_api(args) {
 	var info = data_to_tutorial(R.data);
 	info.type = "tutorial_data";
 	args.res.infs.push(info);
-	args.res.infs.push({ type: "chat_log", message: "Tutorial Reset!", color: "#F7B32F" });
+	args.res.infs.push({ type: "message", message: "Tutorial Reset!", color: "#F7B32F" });
 	return { success: true };
 }
 
@@ -1387,7 +1389,7 @@ async function load_gcode_api(args) {
 async function load_map_api(args) {
 	var map = await get("MP_" + args.key);
 	if (!map || !gf(map, "resort")) {
-		args.res.infs.push({ type: "chat_log", message: "Deck not found", color: "#AE384D" });
+		args.res.infs.push({ type: "message", message: "Deck not found", color: "#AE384D" });
 		return { failed: true };
 	}
 	args.res.infs.push({ type: "map", data: map.info.data });
