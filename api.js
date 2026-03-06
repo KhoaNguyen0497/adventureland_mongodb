@@ -759,7 +759,7 @@ async function disconnect_character_api(args) {
 	if (!character) return { failed: true, reason: "no_character" };
 	if (character.owner !== get_id(user)) return { failed: true, reason: "not_owner" };
 	if (!is_in_game(character)) return { failed: true, reason: "character_not_in_game" };
-	await character_eval(character, "player.socket.disconnect()");
+	await character_eval(character, "console.log('disconnect_character_api'); player.socket.disconnect()");
 	args.res.infs.push({ type: "message", message: "Sent the disconnect signal to the server" });
 	if (args.selection) args.res.infs.push(await selection_info(args.req, user, domain));
 	return { success: true };

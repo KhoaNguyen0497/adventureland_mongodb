@@ -3244,11 +3244,8 @@ function discord_call(message) {
 
 function server_log(message, important) {
 	if (Dev || important) {
-		if (Dev) {
-			console.log(message);
-		} else {
-			console.log(message + " (" + new Date() + ")");
-		}
+		if (message && (message + "").indexOf("SEVERE") != -1) console.error(message);
+		else console.log(message);
 		if (message && (message + "").indexOf("SEVERE") != -1) {
 			(async function () {
 				try {

@@ -88,7 +88,7 @@ async function check_servers() {
 	var servers = await db.collection("server").find({ online: true }).toArray();
 	for (var i = 0; i < servers.length; i++) {
 		var server = post_get(servers[i]);
-		if (ssince(server.updated) > 100) {
+		if (ssince(server.updated) > 120 && server.machine != "local") {
 			var R = await tx(
 				async () => {
 					var entity = await tx_get(A.server);
@@ -106,7 +106,7 @@ async function check_servers() {
 				console.error("check_servers tx failed", server._id, R.reason);
 			} else {
 				console.log("Server offline: " + server._id);
-				offlines.push(server._id);
+				offlines.push(server.address + " " + server.machine + " " + server._id);
 			}
 		}
 	}

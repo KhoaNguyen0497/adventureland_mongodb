@@ -1,4 +1,4 @@
-Version = 2229;
+Version = 2292;
 
 update_notes = [
 	"Lunar New Year Event!",

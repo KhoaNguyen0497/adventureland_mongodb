@@ -3,7 +3,6 @@ var is_pvp = false;
 var server = {
 	started: false,
 	live: false,
-	last_update: false,
 	shutdown: false, // shutdown start
 	stopped: false, // shutdown end
 	s: {},
@@ -340,7 +339,6 @@ async function init_game() {
 				name: server_name,
 				region: region,
 				version: "" + Version,
-				last_update: new Date(),
 				info: { players: 0, observers: 0, total_players: 0, pvp: is_pvp || "", data: data },
 				blobs: ["info"],
 			};
@@ -10288,7 +10286,7 @@ function init_io() {
 				if (!R.entity) ex("no_character");
 				if (!R.owner || !R.owner.info.auths.includes(A[0].auth)) ex("password_issue");
 				if (R.entity.owner !== get_id(R.owner)) ex("no_character");
-				if (R.entity.server && msince(R.entity.last_sync) < 12) ex("ingame");
+				if (R.entity.server && msince(R.entity.last_sync) < 120) ex("ingame");
 				R.entity.server = A[1];
 				R.entity.online = true;
 				R.entity.last_sync = new Date();
@@ -10420,7 +10418,7 @@ function init_io() {
 			if (gameplay == "test") {
 				player.name += parseInt(Math.random() * 10000);
 			}
-			player.real_id = player.id;
+			player.real_id = data.character;
 			player.id = player.name;
 
 			player.total_ips = 1;
@@ -14552,12 +14550,17 @@ function sync_loop() {
 	}
 	// mount_call: Bank entry using tx() (following qwazy pattern)
 	async function mount_call(player) {
-		// player.last_sync=new Date(); - sync doesn't happen at mount - maybe it should [16/08/17]
+		// player.last_sync=new Date(); - sync doesn't happen at mount - maybe it should [16/08/17] it does now [06/03/26]
+		if (player.dc || player.mount_call || player.unmount_call || player.sync_call || player.stop_call) {
+			// hopefully an effective race condition bugfix [06/03/26]
+			console.log("race_conditon mount_call fix worked: ", player.name);
+			return;
+		}
 		player.mount_call = true;
 		var R = await tx(
 			async () => {
 				var owner = await tx_get(A[0].owner);
-				var entity = await tx_get(A[0]);
+				var entity = await tx_get(A[0].real_id);
 				if (!entity || entity.server != server_id) ex("character_gone"); // [03/03/26]
 				if (!owner || (owner.server && (owner.server != server_id || owner.mounted_to != get_id(A[0])))) {
 					R.in_bank = owner.mounted_to;
@@ -14568,6 +14571,12 @@ function sync_loop() {
 				await tx_save(owner);
 				R.user = { gold: owner.info.gold, rewards: owner.info.rewards, unlocked: owner.info.unlocked };
 				for (var p in owner.info) if (p.startsWith("items")) R.user[p] = owner.info[p];
+
+				entity.last_sync = entity.last_online = new Date();
+				var data = player_to_server(A[0], "sync");
+				sync_entity(entity, data);
+				entity.to_backup = true;
+				await tx_save(entity);
 			},
 			[player],
 			6,
@@ -14575,6 +14584,7 @@ function sync_loop() {
 		delete player.mounting;
 		delete player.mount_call;
 		if (R.success) {
+			player.last_sync = new Date();
 			server_log("mount_user: " + player.name + " owner: " + player.owner, 1);
 			player.user = R.user;
 			init_bank(player);
@@ -14589,13 +14599,18 @@ function sync_loop() {
 	}
 	// unmount_call: Bank exit using tx() (following qwazy pattern)
 	async function unmount_call(player) {
-		player.last_sync = new Date();
+		if (player.dc || player.mount_call || player.unmount_call || player.sync_call || player.stop_call) {
+			// hopefully an effective race condition bugfix [06/03/26]
+			console.log("race_conditon unmount_call fix worked: ", player.name);
+			return;
+		}
+		// player.last_sync = new Date();
 		init_bank_exit(player);
 		player.unmount_call = true;
 		var R = await tx(
 			async () => {
 				var owner = await tx_get(A[0].owner);
-				// var entity = await tx_get(A[0]);
+				var entity = await tx_get(A[0].real_id);
 				if (owner && owner.server == server_id && owner.mounted_to == get_id(A[0])) {
 					owner.server = owner.mounted_to = "";
 					if (A[0].user) {
@@ -14605,13 +14620,19 @@ function sync_loop() {
 					}
 					await tx_save(owner);
 				}
+				entity.last_sync = entity.last_online = new Date();
+				var data = player_to_server(A[0], "sync");
+				sync_entity(entity, data);
+				entity.to_backup = true;
+				await tx_save(entity);
 			},
 			[player],
 			41,
 		);
 		delete player.unmount_call;
 		if (R.success) {
-			server_log("unmount_user[sync]: " + player.name + " owner: " + player.owner + " result: " + JSON.stringify(R), 1);
+			player.last_sync = new Date();
+			server_log("unmount_user: " + player.name + " owner: " + player.owner + " result: " + JSON.stringify(R), 1);
 			delete player.unmounting;
 			player.user = null;
 			player.cuser = null;
@@ -14629,6 +14650,19 @@ function sync_loop() {
 	}
 	// sync_call: Character sync using tx() (following qwazy pattern)
 	async function sync_call(player) {
+		if (
+			player.dc ||
+			player.mount_call ||
+			player.unmount_call ||
+			player.sync_call ||
+			player.stop_call ||
+			player.mounting ||
+			player.unmounting
+		) {
+			// hopefully an effective race condition bugfix [06/03/26]
+			console.log("race_conditon sync_call fix worked: ", player.name);
+			return;
+		}
 		player.last_sync = new Date();
 		player.sync_call = true;
 		var R = await tx(
@@ -14657,17 +14691,19 @@ function sync_loop() {
 			1,
 		);
 		delete player.sync_call;
-		if (R.reason == "not_in_game") player.socket.disconnect();
-		else if (R.reason) player.last_sync = new Date(new Date().getTime() - 3 * 60 * 1000);
+		if (R.reason == "not_in_game") {
+			server_log("#X SEVERE not_in_game disconnect at sync_call: ", player.id, 1);
+			player.socket.disconnect();
+		} else if (R.reason) player.last_sync = new Date(new Date().getTime() - 3 * 60 * 1000);
+		else if (R.success && Dev) {
+			server_log("sync_call: " + player.name + " owner: " + player.owner + " result: " + JSON.stringify(R), 1);
+		}
 	}
 	// stop_call: Character logout using tx() (following qwazy pattern)
 	async function stop_call(player) {
 		var bank = (player.user && true) || false;
 		player.stopping = new Date();
 		init_player_exit(player);
-		if (player.unmount_call) {
-			// player.unmount_call.retries = 0;
-		}
 		player.stop_call = true;
 		var R = await tx(
 			async () => {
@@ -14702,6 +14738,7 @@ function sync_loop() {
 			1,
 		);
 		if (R.success || R.reason == "not_in_game") {
+			if (R.reason == "not_in_game") server_log("#X SEVERE not_in_game stop_call ", player.real_id);
 			delete dc_players[player.real_id];
 			add_event({ _id: player._id, info: { name: player.name }, level: player.level }, "stop", ["activity"], {
 				info: { message: player.name + " [LV." + player.level + "] logged out", server: server_id },
@@ -14762,33 +14799,35 @@ function sync_loop() {
 
 // server_loop: Using direct safe_save() instead of appengine_call (following qwazy pattern)
 async function server_loop() {
-	// #IMPORTANT: sometimes none of the success/error callbacks trigger [20/08/19]
-	if (server.update_call && msince(server.update_call.init) > 4) {
-		delete server.update_call;
-	}
-	if (server.update_call || server.stop_call) {
-	} else if (server.live && ssince(Server.updated) > 25) {
-		Server.info.players = Object.keys(players).length;
-		Server.info.observers = Object.keys(observers).length;
-		Server.info.merchants = total_merchants;
-		Server.info.total_players = total_players;
-		await safe_save(Server);
-	} else if (server.started && !server.live && !server.stopped) {
-		Server.online = false;
-		await new Promise((r) => setTimeout(r, 200));
-		await retried_save(Server);
-		await new Promise((r) => setTimeout(r, 200));
-		server.stopped = true;
-	} else if (
-		server.stopped &&
-		((!Object.keys(dc_players).length && !Object.keys(players).length) || gameplay == "hardcore" || gameplay == "test")
-	) {
-		process.stdout.write("", () => {
-			// stdout flushed, now exit
-			process.exit(0);
-		});
-	} else if (server.stopped) {
-		sync_loop();
+	try {
+		if (server.live && ssince(Server.updated) > 15) {
+			Server.online = true;
+			Server.info.players = Object.keys(players).length;
+			Server.info.observers = Object.keys(observers).length;
+			Server.info.merchants = total_merchants;
+			Server.info.total_players = total_players;
+			await save(Server);
+		} else if (server.started && !server.live && !server.stopped) {
+			Server.online = false;
+			await new Promise((r) => setTimeout(r, 200));
+			await retried_save(Server);
+			await new Promise((r) => setTimeout(r, 200));
+			server.stopped = true;
+		} else if (
+			server.stopped &&
+			((!Object.keys(dc_players).length && !Object.keys(players).length) ||
+				gameplay == "hardcore" ||
+				gameplay == "test")
+		) {
+			process.stdout.write("", () => {
+				// stdout flushed, now exit
+				process.exit(0);
+			});
+		} else if (server.stopped) {
+			sync_loop();
+		}
+	} catch (e) {
+		console.error("server_loop()", e);
 	}
 	setTimeout(server_loop, 1000);
 }
