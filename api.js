@@ -124,7 +124,7 @@ async function signup_or_login_api(args) {
 				_id: "US_" + random_string(29),
 				created: new Date(),
 				updated: new Date(),
-				a_rand: (Dev && 25) || 500,
+				a_rand: a_rand("user"),
 				name: "#" + A.signupth,
 				email: [A.email],
 				password: hpassword,
@@ -406,7 +406,7 @@ async function create_character_api(args) {
 				_id: "CH_" + random_string(29),
 				created: new Date(),
 				updated: new Date(),
-				a_rand: (Dev && 25) || 500,
+				a_rand: a_rand("character"),
 				realm: "main",
 				name: simplify_name(A.name),
 				type: A.char_type,
@@ -1380,7 +1380,8 @@ async function load_article_api(args) {
 }
 
 async function load_gcode_api(args) {
-	var file = args.file;
+	var file = "" + args.file;
+	if (file.includes("..")) return { failed: true };
 	if (args.run) args.res.infs.push({ type: "code", code: shtml("docs" + file), run: true });
 	else args.res.infs.push({ type: "gcode", code: shtml("docs" + file) });
 	return { success: true };

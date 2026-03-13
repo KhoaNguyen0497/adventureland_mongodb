@@ -11,6 +11,13 @@
 /electron/node_modules/
 package-lock.json
 
+# Agentic scripts (override *.py ignore)
+# !agentic/*.py
+
+# Agentic - No need to risk it
+/agentic
+/agentic/
+
 # Python (legacy AppEngine removed; agentic/ scripts kept)
 *.py
 *.pyc
@@ -20,9 +27,6 @@ __pycache__/
 /venv/
 agentic/.venv/
 /lib/
-
-# Agentic scripts (override *.py ignore)
-!agentic/*.py
 
 # Credentials live in secretsandconfig/ (already gitignored above)
 

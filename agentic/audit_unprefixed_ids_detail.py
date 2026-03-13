@@ -6,25 +6,13 @@ Distinguishes null/empty from actual unprefixed values.
 
 import sys
 import os
-from urllib.parse import quote_plus
 from pymongo import MongoClient
 
+# SECURITY: Credentials that were previously hardcoded here have been rotated.
+# Always use mongo_config.py or MONGO_URI env var — never hardcode credentials.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-if os.environ.get("MONGO_URI"):
-    from mongo_config import MONGO_URI, MONGO_DB
-    DB_NAME = MONGO_DB
-else:
-    _user = "adv_dev"
-    _pass = quote_plus("qLIgjpy+OISv5yLhx+AJDgZSeur46nMk")
-    _host = "195.201.105.60"
-    _port = "42088"
-    _ca = "/Users/kaan/Desktop/PROJECTS/thegame/thegame_mongodb/secretsandconfig/dev-w1-ca.crt"
-    DB_NAME = "adventuredev"
-    MONGO_URI = (
-        f"mongodb://{_user}:{_pass}@{_host}:{_port}/{DB_NAME}"
-        f"?authSource={DB_NAME}&tls=true&tlsCAFile={_ca}"
-    )
+from mongo_config import MONGO_URI, MONGO_DB
+DB_NAME = MONGO_DB
 
 
 def main():

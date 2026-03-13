@@ -630,17 +630,15 @@ async function reload_server(to_broadcast, change) {
 }
 
 var server_api = express.Router();
-server_api.use((req, res, next) => {
-	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
-	next();
-});
 
 server_api.post("/shutdown", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	shutdown_routine();
 	res.send("ok");
 });
 
 server_api.post("/cupdate", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var id = id_to_id[req.body.id];
 	if (players[id]) {
 		var player = players[id];
@@ -657,6 +655,7 @@ server_api.post("/cupdate", (req, res) => {
 });
 
 server_api.post("/new_friend", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var id = id_to_id[req.body.id];
 	server_log("new_friend for " + req.body.id + " socket.id: " + id, 1);
 	if (players[id]) {
@@ -673,6 +672,7 @@ server_api.post("/new_friend", (req, res) => {
 });
 
 server_api.post("/lost_friend", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var id = id_to_id[req.body.id];
 	server_log("lost_friend for " + req.body.id + " socket.id: " + id, 1);
 	if (players[id]) {
@@ -688,6 +688,7 @@ server_api.post("/lost_friend", (req, res) => {
 });
 
 server_api.post("/eval", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var output = "";
 	var data = JSON.parse(req.body.data || "{}");
 	try {
