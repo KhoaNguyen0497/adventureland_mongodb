@@ -236,6 +236,7 @@ TIMEO = {
 	EU: 1,
 	US: -5,
 	ASIA: 7,
+	OCE: 13,
 };
 var perfc = {
 	game_loop: {},

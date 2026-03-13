@@ -17,6 +17,7 @@ var server_regions={
 	"US":"Americas",
 	"EU":"Europas",
 	"ASIA":"Eastlands",
+	"OCE":"Oceania",
 };
 var server_names=["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
 

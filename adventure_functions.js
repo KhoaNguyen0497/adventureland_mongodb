@@ -329,8 +329,8 @@ base_domain = new URL(options.base_url).hostname;
 secure_cookies = options.secure;
 SALES = 4 + 5 + 388 + 5101 + 125 / 20;
 extra_shells = 0;
-server_regions = { EU: "EU", US: "US", ASIA: "ASIA" };
-region_coords = { EU: [50, 8], US: [37, -100], ASIA: [1.3, 103.8] };
+server_regions = { EU: "EU", US: "US", ASIA: "ASIA", OCE: "OCE" };
+region_coords = { EU: [50, 8], US: [37, -100], ASIA: [1.3, 103.8], OCE: [-40.9006, 174.886] };
 allowed_name_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
 
 async function get_domain(req, user) {
