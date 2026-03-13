@@ -1203,6 +1203,7 @@ async function block_account(name, days, reason, toggle) {
 // ==================== RENDER ====================
 
 function shtml(path, vars) {
+	if (path.includes("..")) throw new Error("shtml: invalid path");
 	return nunjucks.render(path, vars || {});
 }
 

@@ -631,17 +631,15 @@ async function reload_server(to_broadcast, change) {
 }
 
 var server_api = express.Router();
-server_api.use((req, res, next) => {
-	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
-	next();
-});
 
 server_api.post("/shutdown", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	shutdown_routine();
 	res.send("ok");
 });
 
 server_api.post("/cupdate", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var id = id_to_id[req.body.id];
 	if (players[id]) {
 		var player = players[id];
@@ -658,6 +656,7 @@ server_api.post("/cupdate", (req, res) => {
 });
 
 server_api.post("/new_friend", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var id = id_to_id[req.body.id];
 	server_log("new_friend for " + req.body.id + " socket.id: " + id, 1);
 	if (players[id]) {
@@ -674,6 +673,7 @@ server_api.post("/new_friend", (req, res) => {
 });
 
 server_api.post("/lost_friend", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var id = id_to_id[req.body.id];
 	server_log("lost_friend for " + req.body.id + " socket.id: " + id, 1);
 	if (players[id]) {
@@ -689,6 +689,7 @@ server_api.post("/lost_friend", (req, res) => {
 });
 
 server_api.post("/eval", (req, res) => {
+	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
 	var output = "";
 	var data = JSON.parse(req.body.data || "{}");
 	try {
@@ -10615,8 +10616,9 @@ function init_io() {
 				}
 				(async function () {
 					try {
-						var user1 = await get(requests[data.name + "-" + player.name].a);
-						var user2 = await get(requests[data.name + "-" + player.name].b);
+						var req = requests[data.name + "-" + player.name];
+						var user1 = await get(req.a);
+						var user2 = await get(req.b);
 						if (!user1 || !user2) {
 							var p = players[socket.id];
 							if (p) socket.emit("game_response", { response: "friend_failed", reason: "nouser" });
@@ -14554,7 +14556,7 @@ function sync_loop() {
 		// player.last_sync=new Date(); - sync doesn't happen at mount - maybe it should [16/08/17] it does now [06/03/26]
 		if (player.dc || player.mount_call || player.unmount_call || player.sync_call || player.stop_call) {
 			// hopefully an effective race condition bugfix [06/03/26]
-			console.log("race_conditon mount_call fix worked: ", player.name);
+			console.log("race_condition mount_call fix worked: ", player.name);
 			return;
 		}
 		player.mount_call = true;
@@ -14602,7 +14604,7 @@ function sync_loop() {
 	async function unmount_call(player) {
 		if (player.dc || player.mount_call || player.unmount_call || player.sync_call || player.stop_call) {
 			// hopefully an effective race condition bugfix [06/03/26]
-			console.log("race_conditon unmount_call fix worked: ", player.name);
+			console.log("race_condition unmount_call fix worked: ", player.name);
 			return;
 		}
 		// player.last_sync = new Date();
@@ -14661,7 +14663,7 @@ function sync_loop() {
 			player.unmounting
 		) {
 			// hopefully an effective race condition bugfix [06/03/26]
-			console.log("race_conditon sync_call fix worked: ", player.name);
+			console.log("race_condition sync_call fix worked: ", player.name);
 			return;
 		}
 		player.last_sync = new Date();

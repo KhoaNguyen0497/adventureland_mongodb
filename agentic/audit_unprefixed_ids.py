@@ -13,25 +13,11 @@ import re
 from collections import defaultdict
 from pymongo import MongoClient
 
-# Use shared config if env vars set, otherwise fall back to remote dev server
+# SECURITY: Credentials that were previously hardcoded here have been rotated.
+# Always use mongo_config.py or MONGO_URI env var — never hardcode credentials.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-if os.environ.get("MONGO_URI"):
-    from mongo_config import MONGO_URI, MONGO_DB
-    DB_NAME = MONGO_DB
-else:
-    # Read connection details from keys.js-equivalent config
-    from urllib.parse import quote_plus
-    _user = "adv_dev"
-    _pass = quote_plus("qLIgjpy+OISv5yLhx+AJDgZSeur46nMk")
-    _host = "195.201.105.60"
-    _port = "42088"
-    _ca = "/Users/kaan/Desktop/PROJECTS/thegame/thegame_mongodb/secretsandconfig/dev-w1-ca.crt"
-    DB_NAME = "adventuredev"
-    MONGO_URI = (
-        f"mongodb://{_user}:{_pass}@{_host}:{_port}/{DB_NAME}"
-        f"?authSource={DB_NAME}&tls=true&tlsCAFile={_ca}"
-    )
+from mongo_config import MONGO_URI, MONGO_DB
+DB_NAME = MONGO_DB
 
 # Expected prefixes per collection (supports both singular and plural names)
 EXPECTED_PREFIX = {

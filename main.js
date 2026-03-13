@@ -6,6 +6,8 @@ var options = require("./secretsandconfig/options");
 eval("" + fs.readFileSync(path.resolve(__dirname, "common/init.js")));
 reinit_from_options();
 
+app.use("/sounds", express.static("./sounds", { maxAge: "30d" }));
+
 // Override MongoDB connection from common/init.js with keys.mongodb_uri
 if (keys.mongodb_uri) {
 	client = new MongoClient(keys.mongodb_uri, keys.mongodb_config);

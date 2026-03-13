@@ -4,7 +4,7 @@ require(process.env.HOME+"/thegame/scripts/data.js");
 for(var id in machines)
 {
 	var machine=machines[id];
-	var command="ssh -i "+machine.key+" "+machine.user+"@"+machine.ip+" \"ps aux | grep node\"";
+	var command="ssh -p "+(machine.ssh_port||22)+" -i "+machine.key+" "+machine.user+"@"+machine.ip+" \"ps aux | grep node\"";
 	console.log(command);
 	f.execso(command);
 }
