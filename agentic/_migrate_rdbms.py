@@ -7,7 +7,10 @@ import sqlite3, pickle, struct, io, datetime, sys, os
 
 from pymongo import MongoClient, ReplaceOne
 
-RDBMS_PATH = "/Users/kaan/Desktop/PROJECTS/thegame/storage/db.rdbms"
+RDBMS_PATH = os.environ.get(
+    "RDBMS_PATH",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "db.rdbms"))
+)
 from mongo_config import MONGO_URI, MONGO_DB
 
 # Kind → (prefix, collection_name)
