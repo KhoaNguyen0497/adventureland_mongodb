@@ -1351,7 +1351,7 @@ async function enforce_limitations() {
 					to_disconnect.push(player.name);
 					continue;
 				}
-				if (player.type !== "merchant" && (ips[player.ip] > 3 * (ipx[player.ip] || 1) || owners[player.owner] > 3) && to_disconnect.indexOf(player.name) === -1) {
+				if (player.type !== "merchant" && (ips[player.ip] > 10 * (ipx[player.ip] || 1) || owners[player.owner] > 10) && to_disconnect.indexOf(player.name) === -1) {
 					to_disconnect.push(player.name);
 					continue;
 				}
