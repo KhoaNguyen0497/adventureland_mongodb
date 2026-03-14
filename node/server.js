@@ -10456,9 +10456,7 @@ function init_io() {
 			// player.vision[1]=min(700,player.vision[1]);
 			player.vision = B.vision;
 
-			if (!player.verified) {
-				player.s.notverified = { ms: 30 * 60 * 1000 };
-			} else if (player.s.notverified) {
+			if (player.s.notverified) {
 				player.s.notverified = { ms: 100 };
 			}
 
@@ -10512,9 +10510,7 @@ function init_io() {
 			}
 
 			if (mode.drm_check) {
-				if (player.drm && !player.auth_id) {
-					player.s.authfail = { ms: 900000 * 1000 };
-				} else if (player.s.authfail) {
+				if (player.s.authfail) {
 					player.s.authfail = { ms: 100 };
 				}
 			}
