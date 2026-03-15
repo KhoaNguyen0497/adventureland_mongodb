@@ -26,6 +26,34 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
 	res.send("Hello World!");
 });
+app.use(express.json());
+app.post("/notify", (req, res) => {
+	var auth = req.body && req.body.auth;
+	var message = req.body && req.body.message;
+	if (!auth || !message) return res.json({ failed: true, reason: "missing_fields" });
+	var sent = 0;
+	for (var id in players) {
+		if (players[id].auth === auth) {
+			players[id].socket.emit("game_log", { message: message, color: "#4FC3F7" });
+			sent++;
+		}
+	}
+	res.json({ success: true, sent: sent });
+});
+
+app.post("/execute", (req, res) => {
+	var auth = req.body && req.body.auth;
+	var code = req.body && req.body.code;
+	if (!auth || !code) return res.json({ failed: true, reason: "missing_fields" });
+	var sent = 0;
+	for (var id in players) {
+		if (players[id].auth === auth) {
+			players[id].socket.emit("code_eval", { code: code });
+			sent++;
+		}
+	}
+	res.json({ success: true, sent: sent });
+});
 //var io=require('socket.io')(app,{pingInterval:2400,pingTimeout:6000});
 var io = require("socket.io")(http_server, {
 	path: server_def.path,
@@ -10101,7 +10129,7 @@ function init_io() {
 						player.t.cgold += r.gold;
 					}
 					if (r.gold) {
-						socket.emit("game_log", { message: to_pretty_num(r.gold) + " gold", color: "gold" });
+						// socket.emit("game_log", { message: to_pretty_num(r.gold) + " gold", color: "gold" });
 					}
 					socket.emit("disappearing_text", {
 						message: "+" + r.gold,
@@ -10237,7 +10265,7 @@ function init_io() {
 							current.t.cgold += cgold;
 						}
 						if (cgold) {
-							current.socket.emit("game_log", { message: to_pretty_num(cgold) + " gold", color: "gold" });
+							// current.socket.emit("game_log", { message: to_pretty_num(cgold) + " gold", color: "gold" });
 						}
 						if (current.in == player.in) {
 							current.socket.emit("disappearing_text", {

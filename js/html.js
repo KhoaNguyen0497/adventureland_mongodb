@@ -378,7 +378,7 @@ function render_character_sheet() {
 	var lost_xp = floor(min(max((character.max_xp * 0.01) / divider, (character.xp * 0.02) / divider), character.xp));
 	if (character.ctype != "merchant") html += "<div><span style='color:gray'>Max XP Loss:</span> " + to_pretty_num(lost_xp) + " " + disclaimer + "</div>";
 	if (character.party && party && party[character.name])
-		html += "<div><span style='color:" + colors.party_xp + "'>Party:</span> " + round(party[character.name].share * 100) + "% <span style='color:gray'>(Your Share)</span></div>";
+		html += "<div><span style='color:" + colors.party_xp + "'>Party:</span> " + round((1 + party[character.name].xp / 100) * 100) + "% <span style='color:gray'>(Your Share)</span></div>";
 	if (character.ctype == "merchant") html += "<div><span style='color:gray'>Tax:</span> " + character.tax * 100 + "%</div>";
 	if (character.ctype == "priest") {
 		html += "<div><span style='color:gray'>Heal:</span> " + character.heal + "</div>";
