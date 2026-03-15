@@ -1126,6 +1126,19 @@ async function list_codes_api(args) {
 	return { success: true };
 }
 
+async function notify_api(args) {
+	var userId = args.user._id;
+	var message = args.message;
+	var sent = 0;
+	for (var id in players) {
+		if (players[id].owner === userId) {
+			players[id].socket.emit("game_log", { message: message, color: "#4FC3F7" });
+			sent++;
+		}
+	}
+	return { success: true, sent: sent };
+}
+
 async function tutorial_api(args) {
 	var user = args.user,
 		task = args.task,
@@ -1578,6 +1591,12 @@ var REF = {
 		P: true,
 		U: true,
 		purpose: { type: "string", optional: true },
+	},
+	notify: {
+		F: notify_api,
+		P: true,
+		U: true,
+		message: { type: "string" },
 	},
 	tutorial: {
 		F: tutorial_api,

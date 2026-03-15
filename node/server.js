@@ -1052,7 +1052,7 @@ function party_to_client(oname) {
 		player.party_length = length;
 		player.party_gold = 5;
 		player.party_luck = newbies * 10;
-		player.party_xp = [0, 0, 10, 16, 20, 24, 25, 30, 36, 40, 40, 40, 40][length] || 0;
+		player.party_xp = 0; // No party XP bonus — everyone gets flat full EXP
 		party[name] = {
 			skin: player.tskin || player.skin,
 			level: player.level,
@@ -1926,7 +1926,7 @@ function add_item(player, new_item, args) {
 			item.data = new_item.data;
 		} // "cxjar"
 		var num = add_item(mr, item, { m: 1 });
-		mr.socket.emit("game_log", { message: "Found " + item_to_phrase(item), color: "#64B867" });
+		// mr.socket.emit("game_log", { message: "Found " + item_to_phrase(item), color: "#64B867" });
 		xy_emit(mr, "ui", { type: "+M", name: mr.name, item: cache_item(item), num: num, cevent: "mluck", event: "mluck" });
 		resend(mr, "reopen+nc+inv");
 	}
@@ -2570,9 +2570,9 @@ function issue_monster_awards(monster) {
 			if (current.type == "merchant") {
 				continue;
 			}
-			current.xp += round(monster.xp * share * current.xpm);
+			current.xp += round(monster.xp * current.xpm); // Full XP — no share penalty
 			if (current.t) {
-				current.t.xp += round(monster.xp * share * current.xpm);
+				current.t.xp += round(monster.xp * current.xpm);
 			}
 			delete current.s.coop;
 			resend(current, "u+cid");
@@ -2635,7 +2635,7 @@ function issue_monster_award(monster) {
 			current.socket.emit("kill_credit", {
 				mtype: monster.type,
 			});
-			var cxp = round(xp * current.xpm * current.share);
+			var cxp = round(xp * current.xpm); // Full XP — no share penalty
 			if (monster.rbuff && G.conditions[monster.rbuff]) {
 				current.s[monster.rbuff] = { ms: G.conditions[monster.rbuff].duration };
 			}
@@ -2674,10 +2674,10 @@ function kill_monster(attacker, target) {
 	var no_decrease = false;
 	if (attacker) {
 		if (!attacker.party) {
-			attacker.socket.emit("game_log", "You " + killed_message(target.type));
+		// attacker.socket.emit("game_log", "You " + killed_message(target.type));
 		} // tut("killagoo") on game.js
 		else {
-			party_emit(attacker.party, "game_log", attacker.name + " " + killed_message(target.type));
+			// party_emit(attacker.party, "game_log", attacker.name + " " + killed_message(target.type));
 		}
 		if (B.free_last_hits && target.target && target.target != attacker.name) {
 			stop_pursuit(target, { force: true, cause: "kill_monster call" });
@@ -2821,8 +2821,8 @@ function issue_player_award(attacker, target) {
 	if (target.xp < 0) {
 		target.xp = 0;
 	}
-	target.socket.emit("game_log", "Lost " + to_pretty_num(lost_gold) + " gold");
-	target.socket.emit("game_log", "Lost " + to_pretty_num(lost_xp) + " experience");
+	// target.socket.emit("game_log", "Lost " + to_pretty_num(lost_gold) + " gold");
+	// target.socket.emit("game_log", "Lost " + to_pretty_num(lost_xp) + " experience");
 	target.socket.emit("disappearing_text", {
 		message: "-" + lost_xp,
 		x: target.x,
@@ -2843,15 +2843,15 @@ function issue_player_award(attacker, target) {
 		}
 		attacker.gold += gain_gold;
 		attacker.xp += round(lost_xp * 0.95);
-		attacker.socket.emit("game_log", { message: "Pwned " + target.name, color: "#67C051" });
-		attacker.socket.emit("game_log", "Looted " + to_pretty_num(gain_gold) + " gold");
+		// attacker.socket.emit("game_log", { message: "Pwned " + target.name, color: "#67C051" });
+		// attacker.socket.emit("game_log", "Looted " + to_pretty_num(gain_gold) + " gold");
 		attacker.socket.emit("disappearing_text", {
 			message: "+" + gain_gold,
 			x: target.x,
 			y: target.y - 40,
 			args: { color: "+gold", size: "large" },
 		});
-		attacker.socket.emit("game_log", "Gained " + to_pretty_num(round(lost_xp * 0.95)) + " experience");
+		// attacker.socket.emit("game_log", "Gained " + to_pretty_num(round(lost_xp * 0.95)) + " experience");
 		attacker.socket.emit("disappearing_text", {
 			message: "+" + lost_xp,
 			x: target.x,
@@ -2876,8 +2876,8 @@ function issue_player_award(attacker, target) {
 			if (attacker.type != "merchant") {
 				attacker.xp += lost_xp;
 			}
-			attacker.socket.emit("game_log", { message: name + " pwned " + target.name, color: "#67C051" });
-			attacker.socket.emit("game_log", "Looted " + to_pretty_num(gain_gold) + " gold");
+			// attacker.socket.emit("game_log", { message: name + " pwned " + target.name, color: "#67C051" });
+			// attacker.socket.emit("game_log", "Looted " + to_pretty_num(gain_gold) + " gold");
 			attacker.socket.emit("disappearing_text", {
 				message: "+" + gain_gold,
 				x: target.x,
@@ -2885,7 +2885,7 @@ function issue_player_award(attacker, target) {
 				args: { color: "+gold", size: "large" },
 			});
 			if (attacker.type != "merchant") {
-				attacker.socket.emit("game_log", "Gained " + to_pretty_num(lost_xp) + " experience");
+			// attacker.socket.emit("game_log", "Gained " + to_pretty_num(lost_xp) + " experience");
 				attacker.socket.emit("disappearing_text", {
 					message: "+" + lost_xp,
 					x: target.x,
