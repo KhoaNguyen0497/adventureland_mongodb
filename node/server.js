@@ -44,12 +44,15 @@ app.post("/notify", (req, res) => {
 app.post("/execute", (req, res) => {
 	var auth = req.body && req.body.auth;
 	var code = req.body && req.body.code;
+	var characters = Array.isArray(req.body && req.body.characters) ? req.body.characters : [];
 	if (!auth || !code) return res.json({ failed: true, reason: "missing_fields" });
 	var sent = 0;
 	for (var id in players) {
 		if (players[id].auth === auth) {
-			players[id].socket.emit("code_eval", { code: code });
-			sent++;
+			if (characters.length === 0 || characters.includes(players[id].name)) {
+				players[id].socket.emit("code_eval", { code: code });
+				sent++;
+			}
 		}
 	}
 	res.json({ success: true, sent: sent });
