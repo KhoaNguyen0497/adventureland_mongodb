@@ -5477,6 +5477,12 @@ function save_code_s() {
 	api_call("save_code", { code: codemirror_render.getValue(), slot: $(".csharp").val(), name: $(".codename").val(), log: 1 });
 }
 
+function save_code_current() {
+	if (!code_slot) { ui_error("No code slot active. Use Save As first."); return; }
+	var name = (X.codes && X.codes[code_slot] && X.codes[code_slot][0]) || "Empty";
+	api_call("save_code", { code: codemirror_render.getValue(), slot: "" + code_slot, name: name, log: 1 });
+}
+
 var last_servers_and_characters = new Date();
 setInterval(function () {
 	if (!window.inside) return;
